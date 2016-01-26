@@ -134,7 +134,7 @@ public class MainActivity extends Activity implements Detector.ImageListener, Ca
         });
 
         detector = new CameraDetector(this, CameraDetector.CameraType.CAMERA_FRONT, cameraPreview);
-        //detector.setLicensePath("Your License File");
+        detector.setLicensePath("Affdex.license");
         detector.setDetectSmile(true);
         detector.setImageListener(this);
         detector.setOnCameraEventListener(this);
