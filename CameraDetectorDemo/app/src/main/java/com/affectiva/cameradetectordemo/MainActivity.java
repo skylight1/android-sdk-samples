@@ -197,11 +197,6 @@ public class MainActivity extends Activity implements Detector.ImageListener, Ca
     }
 
     @Override
-    public void onCameraStarted(boolean b, Throwable throwable) {
-
-    }
-
-    @Override
     public void onCameraSizeSelected(int width, int height, Frame.ROTATE rotate) {
         if (rotate == Frame.ROTATE.BY_90_CCW || rotate == Frame.ROTATE.BY_90_CW) {
             previewWidth = height;
