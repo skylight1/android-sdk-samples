@@ -63,19 +63,9 @@ public class MainActivity extends Activity implements Detector.ImageListener {
         super.onActivityResult(requestCode, resultCode, data);
         Log.e(LOG_TAG, "onActivityForResult");
         if (resultCode == RESULT_OK && requestCode == PICK_VIDEO) {
-
             Uri videoUri = data.getData();
-            try {
-
-                String path = getPath(this,videoUri);
-                processVideo(path);
-
-            } catch (Exception e) {
-                Toast.makeText(this, "Unable to open video.", Toast.LENGTH_LONG).show();
-            }
-
-
-
+            String path = getPath(this,videoUri);
+            processVideo(path);
         } else {
             Toast.makeText(this,"No image selected.",Toast.LENGTH_LONG).show();
         }

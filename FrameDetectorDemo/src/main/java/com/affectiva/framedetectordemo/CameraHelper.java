@@ -176,12 +176,7 @@ class CameraHelper extends OrientationEventListener implements SurfaceHolder.Cal
 
         isPreviewing = true;
 
-        try {
-            cameraWrapper.camera.startPreview();
-        } catch (Exception e) {
-            Log.e(LOG_TAG,"Failed to start preview!");
-            stopPreviewing();
-        }
+        cameraWrapper.camera.startPreview();
     }
 
     /*
@@ -294,11 +289,7 @@ class CameraHelper extends OrientationEventListener implements SurfaceHolder.Cal
 
     void closeCameraSafe() {
         synchronized (cameraWrapper) {
-            try {
-                cameraWrapper.camera.release();
-            } catch (Exception e) {
-                //do nothing, exception thrown because camera was already closed or camera was null (if it failed to open at all)
-            }
+            cameraWrapper.camera.release();
         }
         cameraState = CameraHelperState.STOPPED;
     }
@@ -485,15 +476,10 @@ class CameraHelper extends OrientationEventListener implements SurfaceHolder.Cal
         @Override
         public void run() {
             synchronized (cameraWrapper) {
-                try {
-                    cameraFacade.acquireCamera(cameraWrapper);
-                    initCameraParams(cameraWrapper);
-                    cameraWrapper.error = null;
-                } catch (Exception e) {
-                    cameraWrapper.error = e;
-                } finally {
-                    mHandler.obtainMessage(MainThreadHandler.CAMERA_CREATED).sendToTarget();
-                }
+                cameraFacade.acquireCamera(cameraWrapper);
+                initCameraParams(cameraWrapper);
+                cameraWrapper.error = null;
+                mHandler.obtainMessage(MainThreadHandler.CAMERA_CREATED).sendToTarget();
             }
         }
 

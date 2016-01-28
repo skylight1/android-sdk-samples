@@ -328,28 +328,16 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void updateImageDimensions(int w, int h) {
-        try {
-            drawingViewConfig.updateImageDimensions(w, h);
-        } catch (Exception e) {
-            Log.e(LOG_TAG,e.getMessage());
-        }
+        drawingViewConfig.updateImageDimensions(w, h);
     }
 
     public void updateSurfaceViewDimensions(int w, int h) {
-        try {
-            drawingViewConfig.updateSurfaceViewDimensions(w, h);
-        } catch (Exception e) {
-            Log.e(LOG_TAG,e.getMessage());
-        }
+        drawingViewConfig.updateSurfaceViewDimensions(w, h);
     }
 
     public void setThickness(int t) {
         drawingViewConfig.setDrawThickness(t);
-        try {
-            drawingThread.setThickness(t);
-        } catch(Exception e) {
-            Log.e(LOG_TAG,e.getMessage());
-        }
+        drawingThread.setThickness(t);
     }
 
     public void setDrawPointsEnabled(boolean b){

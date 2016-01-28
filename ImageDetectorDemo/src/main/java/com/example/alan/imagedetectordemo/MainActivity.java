@@ -29,6 +29,8 @@ import com.affectiva.android.affdex.sdk.detector.PhotoDetector;
 import com.affectiva.android.affdex.sdk.Frame;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
@@ -70,8 +72,11 @@ public class MainActivity extends Activity implements Detector.ImageListener {
 
         Log.e(LOG_TAG, "onCreate");
 
-        loadInitialImage();
-
+        try {
+            loadInitialImage();
+        } catch (IOException ioe) {
+            Log.e(LOG_TAG, "loading initial image", ioe);
+        }
     }
 
     @Override
@@ -81,7 +86,7 @@ public class MainActivity extends Activity implements Detector.ImageListener {
 
     }
 
-    void loadInitialImage() {
+    void loadInitialImage() throws IOException {
         if (bitmap == null) {
             bitmap = getBitmapFromAsset(this, "images/default.jpg");
         }
@@ -90,11 +95,7 @@ public class MainActivity extends Activity implements Detector.ImageListener {
 
     void startDetector() {
         if (!detector.isRunning()) {
-            try {
-                detector.start();
-            } catch (Exception e) {
-                Log.e(LOG_TAG,e.getMessage());
-            }
+            detector.start();
         }
     }
 
@@ -113,11 +114,7 @@ public class MainActivity extends Activity implements Detector.ImageListener {
 
     void stopDetector() {
         if (detector.isRunning()) {
-            try {
-                detector.stop();
-            } catch (Exception e) {
-                Log.e(LOG_TAG,e.getMessage());
-            }
+            detector.stop();
         }
     }
 
@@ -131,32 +128,22 @@ public class MainActivity extends Activity implements Detector.ImageListener {
 
 
 
-    public Bitmap getBitmapFromAsset(Context context, String filePath) {
+    public Bitmap getBitmapFromAsset(Context context, String filePath) throws IOException {
         AssetManager assetManager = context.getAssets();
 
         InputStream istr;
         Bitmap bitmap;
-        try {
-            istr = assetManager.open(filePath);
-            bitmap = BitmapFactory.decodeStream(istr);
-        } catch (Exception e) {
-            Log.e(LOG_TAG,e.getMessage());
-            return null;
-        }
+        istr = assetManager.open(filePath);
+        bitmap = BitmapFactory.decodeStream(istr);
 
         return bitmap;
     }
 
-    public Bitmap getBitmapFromUri(Uri uri) {
+    public Bitmap getBitmapFromUri(Uri uri) throws FileNotFoundException {
         InputStream istr;
         Bitmap bitmap;
-        try {
-            istr = getContentResolver().openInputStream(uri);
-            bitmap = BitmapFactory.decodeStream(istr);
-        } catch (Exception e) {
-            Log.e(LOG_TAG,e.getMessage());
-            return null;
-        }
+        istr = getContentResolver().openInputStream(uri);
+        bitmap = BitmapFactory.decodeStream(istr);
 
         return bitmap;
     }
@@ -285,13 +272,11 @@ public class MainActivity extends Activity implements Detector.ImageListener {
             try {
                 bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),imageUri);
 
-            } catch (Exception e) {
+            } catch (IOException e) {
                 Toast.makeText(this,"Unable to open image.",Toast.LENGTH_LONG).show();
             }
 
-
             setAndProcessBitmap(Frame.ROTATE.NO_ROTATION, true);
-
 
         } else {
             Toast.makeText(this,"No image selected.",Toast.LENGTH_LONG).show();

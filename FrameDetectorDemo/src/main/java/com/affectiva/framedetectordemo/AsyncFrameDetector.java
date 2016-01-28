@@ -252,22 +252,14 @@ public class AsyncFrameDetector {
                 }
             });
 
-            try {
-                detector.start();
-            } catch (Exception e) {
-                Log.e(LOG_TAG,e.getMessage());
-            }
+            detector.start();
 
             mainThreadhandler.obtainMessage(MainThreadHandler.DETECTOR_STARTED).sendToTarget();
         }
 
         public void stopDetectorAsync() {
             detector.setImageListener(null);
-            try {
-                detector.stop();
-            } catch (Exception e) {
-                Log.e(LOG_TAG,e.getMessage());
-            }
+            detector.stop();
         }
 
         void detectFrameAsync(InputData data) {

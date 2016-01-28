@@ -158,30 +158,18 @@ public class MainActivity extends Activity implements Detector.ImageListener, Ca
 
     void startDetector() {
         if (!detector.isRunning()) {
-            try {
-                detector.start();
-            } catch (Exception e) {
-                Log.e(LOG_TAG, e.getMessage());
-            }
+            detector.start();
         }
     }
 
     void stopDetector() {
         if (detector.isRunning()) {
-            try {
-                detector.stop();
-            } catch (Exception e) {
-                Log.e(LOG_TAG,e.getMessage());
-            }
+            detector.stop();
         }
     }
 
     void switchCamera(CameraDetector.CameraType type) {
-        try {
-            detector.setCameraType(type);
-        } catch (Exception e) {
-            Log.e(LOG_TAG, e.getMessage());
-        }
+        detector.setCameraType(type);
     }
 
     @Override
