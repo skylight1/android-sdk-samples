@@ -280,7 +280,7 @@ public class AsyncFrameDetector {
             if (detector.isRunning()) {
                 detector.reset();
             }
-            Log.i("Affectiva", "Detector reset");
+            Log.i(LOG_TAG, "Detector reset");
         }
 
         class OutputData {

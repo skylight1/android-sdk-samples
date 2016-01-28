@@ -161,7 +161,7 @@ public class MainActivity extends Activity implements Detector.ImageListener, Ca
             try {
                 detector.start();
             } catch (Exception e) {
-                Log.e("Affectiva", e.getMessage());
+                Log.e(LOG_TAG, e.getMessage());
             }
         }
     }
@@ -171,7 +171,7 @@ public class MainActivity extends Activity implements Detector.ImageListener, Ca
             try {
                 detector.stop();
             } catch (Exception e) {
-                Log.e("Affectiva",e.getMessage());
+                Log.e(LOG_TAG,e.getMessage());
             }
         }
     }
@@ -180,7 +180,7 @@ public class MainActivity extends Activity implements Detector.ImageListener, Ca
         try {
             detector.setCameraType(type);
         } catch (Exception e) {
-            Log.e("Affectiva", e.getMessage());
+            Log.e(LOG_TAG, e.getMessage());
         }
     }
 

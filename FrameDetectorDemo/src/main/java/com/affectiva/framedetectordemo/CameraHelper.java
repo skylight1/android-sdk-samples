@@ -151,7 +151,7 @@ class CameraHelper extends OrientationEventListener implements SurfaceHolder.Cal
         Method should only be called when state is CameraHelperState.STARTED
      */
     private void startPreviewing(SurfaceHolder holder) {
-        Log.e("Affectiva", "startPreviewing");
+        Log.e(LOG_TAG, "startPreviewing");
         try {
             cameraWrapper.camera.setPreviewDisplay(holder);
         } catch (IOException e) {
@@ -189,7 +189,7 @@ class CameraHelper extends OrientationEventListener implements SurfaceHolder.Cal
         Method should only be called when state is CameraHelperState.STARTED
      */
     private void stopPreviewing() {
-        Log.e("Affectiva", "stopPreviewing");
+        Log.e(LOG_TAG, "stopPreviewing");
         if (isPreviewing) {
             cameraWrapper.camera.stopPreview();
             cameraWrapper.camera.setPreviewCallback(null);
@@ -203,7 +203,7 @@ class CameraHelper extends OrientationEventListener implements SurfaceHolder.Cal
      * If a camera was in the process of being created, this method will attempt to block until the camera has been released.
      */
     public void stopCamera() {
-        Log.e("Affectiva", "CameraHelper.stopCamera()");
+        Log.e(LOG_TAG, "CameraHelper.stopCamera()");
         if (cameraState == CameraHelperState.STARTED) {
             if (isPreviewing) {
                 stopPreviewing();
@@ -239,7 +239,7 @@ class CameraHelper extends OrientationEventListener implements SurfaceHolder.Cal
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Log.e("Affectiva", "surfaceChanged");
+        Log.e(LOG_TAG, "surfaceChanged");
         if (cameraState == CameraHelperState.STARTED) {
             stopPreviewing();
             startPreviewing(holder);
@@ -248,7 +248,7 @@ class CameraHelper extends OrientationEventListener implements SurfaceHolder.Cal
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        Log.e("Affectiva", "surfaceCreated");
+        Log.e(LOG_TAG, "surfaceCreated");
         isSurfaceCreated = true;
         if (cameraState == CameraHelperState.STARTED) {
             startPreviewing(holder);
@@ -257,7 +257,7 @@ class CameraHelper extends OrientationEventListener implements SurfaceHolder.Cal
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.e("Affectiva", "surfaceDestroyed");
+        Log.e(LOG_TAG, "surfaceDestroyed");
         isSurfaceCreated = false;
         if (cameraState == CameraHelperState.STARTED) {
             stopPreviewing();
