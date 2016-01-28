@@ -1,17 +1,15 @@
 package com.affectiva.cameradetectordemo;
 
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -20,9 +18,14 @@ import com.affectiva.android.affdex.sdk.Frame;
 import com.affectiva.android.affdex.sdk.detector.CameraDetector;
 import com.affectiva.android.affdex.sdk.detector.Detector;
 import com.affectiva.android.affdex.sdk.detector.Face;
-import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * This is a very bare sample app to demonstrate the usage of the CameraDetector object from Affectiva.
@@ -52,6 +55,12 @@ public class MainActivity extends Activity implements Detector.ImageListener, Ca
 
     int previewWidth = 0;
     int previewHeight = 0;
+
+    static final String IFTTT_KEY = "XXXXXXXXXXXXXXXXXXXXXX";
+    static final float SMILE_LEVEL_THRESHOLD = 80.0f;
+    static final int FRAME_COUNT_THRESHOLD = 10;
+    int smileFrameCount = 0;
+    boolean smileEventSent = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,11 +199,53 @@ public class MainActivity extends Activity implements Detector.ImageListener, Ca
             return;;
         if (list.size() == 0) {
             smileTextView.setText("NO FACE");
+            smileFrameCount = 0;
+            smileEventSent = false;
         } else {
             Face face = list.get(0);
-            smileTextView.setText(String.format("SMILE\n%.2f",face.expressions.getSmile()));
+            float smile_level = face.expressions.getSmile();
+            smileTextView.setText(String.format("SMILE\n%.2f",smile_level));
+            if (smile_level > SMILE_LEVEL_THRESHOLD) {
+                Log.i("Affectiva", "frame count threshold passed " + smileFrameCount);
+                if (smileFrameCount > FRAME_COUNT_THRESHOLD) {
+                    if (!smileEventSent) {
+                        new SendSmileEvent().execute(smile_level);
+                        smileEventSent = true;
+                    }
+                } else {
+                    smileFrameCount++;
+                }
+            } else {
+                smileFrameCount = 0;
+                smileEventSent = false;
+            }
         }
     }
+
+    class SendSmileEvent extends AsyncTask<Float, Void, Integer> {
+        protected Integer doInBackground(Float... value) {
+            try {
+                // connect to IFTTT
+                URL ifttt = new URL("https://maker.ifttt.com/trigger/smile/with/key/" + IFTTT_KEY);
+                HttpsURLConnection con = (HttpsURLConnection) ifttt.openConnection();
+
+                // send trigger event
+                con.setRequestMethod("POST");
+                con.setDoOutput(true);
+                DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+                wr.writeBytes("value1=" + value[0]);
+                wr.close();
+
+                Log.e("Affectiva", "sent smile event");
+
+                return con.getResponseCode();
+            } catch (IOException e) {
+                Log.e("Affectiva", "sending smile event", e);
+                return null;
+            }
+        }
+    }
+
 
     @Override
     public void onCameraSizeSelected(int width, int height, Frame.ROTATE rotate) {
