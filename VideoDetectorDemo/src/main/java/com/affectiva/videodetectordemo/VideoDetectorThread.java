@@ -31,9 +31,6 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
     public static String LOG_TAG = "Affectiva";
     DrawingView drawingView;
 
-    FrameDecoder decoder;
-    FrameDecoder.FrameDecoderFactory factory;
-
     MetricsPanel metricsPanel;
 
     public VideoDetectorThread(String file, Activity context, MetricsPanel metricsPanel, DrawingView drawingView ) {
