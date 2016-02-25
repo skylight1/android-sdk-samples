@@ -119,6 +119,12 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
             int leftOffset= 0;
             float radius = (float)canvasWidth/100f;
 
+            if (frameRot == Frame.ROTATE.BY_90_CCW || frameRot == Frame.ROTATE.BY_90_CW) {
+                int temp = frameWidth;
+                frameWidth = frameHeight;
+                frameHeight = temp;
+            }
+
             if (frame instanceof Frame.BitmapFrame) {
                 bitmap = ((Frame.BitmapFrame)frame).getBitmap();
             } else { //frame is ByteArrayFrame
@@ -126,12 +132,6 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
                 ByteBuffer buffer = ByteBuffer.wrap(pixels);
                 bitmap = Bitmap.createBitmap(frameWidth, frameHeight, Bitmap.Config.ARGB_8888);
                 bitmap.copyPixelsFromBuffer(buffer);
-            }
-
-            if (frameRot == Frame.ROTATE.BY_90_CCW || frameRot == Frame.ROTATE.BY_90_CW) {
-                int temp = frameWidth;
-                frameWidth = frameHeight;
-                frameHeight = temp;
             }
 
             float frameAspectRatio = (float)frameWidth/(float)frameHeight;
