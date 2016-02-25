@@ -56,6 +56,8 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
             detector.start();
         } catch ( Exception e) {
             Log.e(LOG_TAG, e.getMessage());
+        } finally {
+            detector.stop();
         }
     }
 
