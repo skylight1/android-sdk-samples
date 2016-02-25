@@ -1,27 +1,20 @@
 package com.affectiva.videodetectordemo;
 
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Matrix;
 import android.graphics.PointF;
-import android.media.MediaMetadataRetriever;
 import android.util.Log;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.affectiva.android.affdex.sdk.Frame;
-import com.affectiva.android.affdex.sdk.decoder.FrameDecoder;
 import com.affectiva.android.affdex.sdk.detector.Detector;
 import com.affectiva.android.affdex.sdk.detector.Face;
 import com.affectiva.android.affdex.sdk.detector.VideoFileDetector;
 
-import java.nio.ByteBuffer;
-import java.nio.channels.FileLock;
 import java.util.List;
 
 /**
- * Created by Alan on 7/24/2015.
+ * A thread to manage the VideoDetector.
+ *
+ * Note: This is required since running the VideoDetector in the main thread will crash the application.
  */
 public class VideoDetectorThread extends Thread implements Detector.ImageListener {
 

@@ -20,7 +20,7 @@ import com.affectiva.android.affdex.sdk.Frame;
 import java.nio.ByteBuffer;
 
 /**
- * This is a sample app showing how to use Video
+ * This is a sample app showing how to use VideoDetector
  */
 public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
