@@ -69,7 +69,6 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
 
         final Frame frame = image;
         final List<Face> faces = list;
-        Log.e("integration_testing",String.valueOf(timestamp));
 
 
 
@@ -81,11 +80,6 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
                     Face face = faces.get(0);
                     for (Metrics metric : Metrics.values()) {
                         metricsPanel.setMetricValue(metric,getScore(metric,face));
-
-                        if (metric == Metrics.YAW) {
-                            Log.e("integration_testing", String.format("%s score %.3f",metric.getUpperCaseName(),getScore(metric,face)));
-
-                       }
                     }
                     PointF[] facePoints = face.getFacePoints();
                     int frameWidth = frame.getWidth();
@@ -100,7 +94,6 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
                     Frame.revertPointRotation(facePoints,frameWidth,frameHeight,frame.getTargetRotation());
                     drawingView.drawFrame(frame,facePoints);
                 } else {
-                    Log.e("integration_testing", String.format("At time %.3f face not found!",timestamp));
                     for (Metrics metric : Metrics.values()) {
                         metricsPanel.setMetricNA(metric);
                     }
