@@ -4,12 +4,11 @@ These sample projects are Android Studio projects.
 
 In order to use any one of these projects, you will need to:
 
-* Obtain the Affectiva Android SDK from http://www.affectiva.com/solutions/apis-sdks/
-* Copy the contents of the SDK's assets folder into the project's assets folder
-* Copy the contents of the SDK's libs folder into the project's libs folder
-* Copy the armeabi-v7a folder (found in the SDK libs folder) into the project's jniLibs folder
+* Get a license file.  No-cost 45 day evaluation licenses are available at <http://www.affectiva.com/45-day-free-trial/>
 * Copy your license file to src/main/assets/Affdex/Affdex.license
 * Build the project - ./gradlew installDebug
+
+For more info on the Affdex SDK please see [our developer portal](http://developer.affectiva.com/v3/android/).
 
 Copyright (c) 2014-2016 Affectiva
 
