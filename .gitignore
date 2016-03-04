@@ -19,6 +19,5 @@ local.properties
 *.iml
 .idea
 
-# SDK files
-*/libs/
-*/jniLibs/
+# License files
+Affdex.license

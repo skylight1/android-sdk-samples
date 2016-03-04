@@ -1,4 +1,4 @@
-package com.example.alan.imagedetectordemo;
+package com.affectiva.imagedetectordemo;
 
 /**
  * Created by Alan on 7/23/2015.

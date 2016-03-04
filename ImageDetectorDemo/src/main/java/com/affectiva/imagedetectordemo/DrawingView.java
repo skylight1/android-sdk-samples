@@ -1,4 +1,4 @@
-package com.example.alan.imagedetectordemo;
+package com.affectiva.imagedetectordemo;
 
 import android.content.Context;
 import android.graphics.Bitmap;

@@ -1,4 +1,4 @@
-package com.example.alan.imagedetectordemo;
+package com.affectiva.imagedetectordemo;
 
 import android.app.ActionBar;
 import android.content.Context;

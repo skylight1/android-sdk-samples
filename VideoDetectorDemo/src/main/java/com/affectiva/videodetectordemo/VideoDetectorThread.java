@@ -60,8 +60,6 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
         final Frame frame = image;
         final List<Face> faces = list;
 
-
-
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
