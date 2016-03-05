@@ -27,5 +27,5 @@ android {
 }
 
 dependencies {
-    compile('com.affectiva.android:affdexsdk:3.0.+')
+    compile('com.affectiva.android:affdexsdk:3.0.1')
 }
