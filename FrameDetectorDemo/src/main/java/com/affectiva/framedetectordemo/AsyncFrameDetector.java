@@ -1,7 +1,10 @@
 package com.affectiva.framedetectordemo;
 
 import android.content.Context;
-import android.os.*;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
 import android.os.Process;
 import android.util.Log;
 
@@ -10,9 +13,6 @@ import com.affectiva.android.affdex.sdk.detector.Detector;
 import com.affectiva.android.affdex.sdk.detector.Face;
 import com.affectiva.android.affdex.sdk.detector.FrameDetector;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
-import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
@@ -23,22 +23,24 @@ public class AsyncFrameDetector {
 
     public interface OnDetectorEventListener {
         void onImageResults(List<Face> faces, Frame image, float timeStamp);
+
         void onDetectorStarted();
     }
 
-    FrameDetectorThread backgroundThread;
-    Context context;
-    boolean isRunning;
-    MainThreadHandler mainThreadHandler;
-    OnDetectorEventListener listener;
+    private static final int MAX_FRAMES_WAITING = 1;
+    private FrameDetectorThread detectorThread;
+    private Context context;
+    private boolean isRunning;
+    private MainThreadHandler mainThreadHandler;
+    private FrameDetectorHandler detectorThreadHandler;
+    private OnDetectorEventListener listener;
 
     /*
      Since FrameDetector is run on a background thread based off Android's HandlerThread class, it will receive frames to process
      in a queue. It is possible that this queue could grow in size, causing FrameDetector to incur a 'debt' of frames to process.
      To avoid this, we define a maximum number of frames that this waiting queue is allowed to have before we submit any more frames.
      */
-    int framesWaiting = 0;
-    final int MAX_FRAMES_WAITING = 1;
+    private int framesWaiting = 0;
 
     public AsyncFrameDetector(Context context) {
         this.context = context;
@@ -49,7 +51,7 @@ public class AsyncFrameDetector {
         this.listener = listener;
     }
 
-    /**
+    /*
      * Starts running FrameDetector on a background thread.
      * Note that FrameDetector is not guaranteed to have started by the time this call returns, because it is
      * started asynchronously.
@@ -59,41 +61,52 @@ public class AsyncFrameDetector {
             throw new RuntimeException("Called start() without calling stop() first.");
 
         isRunning = true;
-        backgroundThread = new FrameDetectorThread("FrameDetectorThread",mainThreadHandler,context);
-        backgroundThread.start();
-        backgroundThread.waitUntilLooperAndHandlerCreated();
-        backgroundThread.startDetector();
+
+        // create and start the background detector thread
+        detectorThread = new FrameDetectorThread();
+        detectorThread.start();
+
+        // create a handler for the detector thread, and send it a start message
+        detectorThreadHandler = new FrameDetectorHandler(context, mainThreadHandler, detectorThread);
+        detectorThreadHandler.sendStartMessage();
+
         framesWaiting = 0;
     }
 
-    /**
-     * Notifies the background thread to stop FrameDetector.
+    /*
+     * Asynchronously stops the FrameDetector.
      */
     public void stop() {
-        if(!isRunning)
+        if (!isRunning)
             throw new RuntimeException("Called stop() without calling start() first");
 
-        backgroundThread.stopDetector();
-        backgroundThread = null;
+        detectorThreadHandler.sendStopMessage();
+
+        // facilitate GC of the detector thread and handler.  The last reference to the handler
+        // will be the one in the stop message -- once that message has been processed by the
+        // handler, it will be eligible for GC
+        detectorThread = null;
+        detectorThreadHandler = null;
+
         isRunning = false;
     }
 
-    boolean isRunning() {
+    public boolean isRunning() {
         return isRunning;
     }
 
     public void process(Frame frame, float timestamp) {
-        if(isRunning) {
+        if (isRunning) {
             if (framesWaiting <= MAX_FRAMES_WAITING) {
                 framesWaiting += 1;
-                backgroundThread.sendFrameToDetector(frame, timestamp);
+                detectorThreadHandler.sendProcessFrameMessage(new InputData(frame, timestamp));
             }
         }
     }
 
     public void reset() {
         if (isRunning) {
-            backgroundThread.resetDetector();
+            detectorThreadHandler.sendResetMessage();
             framesWaiting = 0;
         }
     }
@@ -101,8 +114,8 @@ public class AsyncFrameDetector {
     /*
         Notify our listener that FrameDetector start has completed.
      */
-    private void sendDetectorStartedEvent() {
-        if (listener!= null) {
+    private void notifyDetectorStarted() {
+        if (isRunning && listener != null) {
             listener.onDetectorStarted();
         }
     }
@@ -110,195 +123,207 @@ public class AsyncFrameDetector {
     /*
         Send processed frame data to our listener.
      */
-    private void sendOnImageResultsEvent(List<Face> faces, Frame frame, float timestamp) {
+    private void notifyImageResults(List<Face> faces, Frame frame, float timestamp) {
         framesWaiting -= 1;
         if (framesWaiting < 0) {
             framesWaiting = 0;
         }
-        Log.e("ThreadTesting",String.format("Frames in queue: %d",framesWaiting));
-        if (listener != null) {
-            listener.onImageResults(faces,frame,timestamp);
+        Log.d("AsyncFrameDetector", String.format("Frames in queue: %d", framesWaiting));
+
+        if (isRunning && listener != null) {
+            listener.onImageResults(faces, frame, timestamp);
         }
     }
 
-    /**
-     * Since our handler may be disposed long before our AsyncFrameDetector is disposed, we declare it as a static inner
-     * class and hold only a WeakReference to our AsyncFrameDetector object, to avoid memory leaks.
-     */
-    static class MainThreadHandler extends Handler {
-        WeakReference<AsyncFrameDetector> weakReference;
+    private static class MainThreadHandler extends Handler {
+        private static final int FRAME_READY = 0;
+        private static final int DETECTOR_STARTED = 1;
 
-        public static final int FRAME_READY = 0;
-        public static final int DETECTOR_STARTED = 1;
+        private AsyncFrameDetector asyncFrameDetector;
 
         MainThreadHandler(AsyncFrameDetector asyncFrameDetector) {
             super(Looper.getMainLooper());
-            weakReference = new WeakReference<>(asyncFrameDetector);
+            this.asyncFrameDetector = asyncFrameDetector;
         }
 
+        private void sendDetectorStartedMessage() {
+            sendMessage(obtainMessage(DETECTOR_STARTED));
+        }
+
+        private void sendFrameReadyMessage(OutputData data) {
+            sendMessage(obtainMessage(FRAME_READY, data));
+        }
+
+
+        /*
+         Process messages on the main thread that were sent from the background thread.
+         */
         @Override
         public void handleMessage(Message msg) {
-            AsyncFrameDetector asyncDetector = weakReference.get();
             switch (msg.what) {
                 case DETECTOR_STARTED:
-                        asyncDetector.sendDetectorStartedEvent();
+                    asyncFrameDetector.notifyDetectorStarted();
                     break;
                 case FRAME_READY:
-                        FrameDetectorThread.OutputData frameData = (FrameDetectorThread.OutputData) msg.obj;
-                        asyncDetector.sendOnImageResultsEvent(frameData.faces,frameData.frame,frameData.timestamp);
+                    OutputData frameData = (OutputData) msg.obj;
+                    asyncFrameDetector.notifyImageResults(frameData.faces, frameData.frame, frameData.timestamp);
+                    break;
+                default:
+                    // IGNORE
                     break;
             }
         }
     }
 
     /**
-     * Our background thread, which operates by instantiating a FrameDetector in the background and communicating with it
-     * via Handler Messages. See Android HandlerThread class documentation for more information on how this class works.
+     * A background thread for performing frame detection.  See Android HandlerThread class
+     * documentation for more information on how this class works.
      */
-    private class FrameDetectorThread extends HandlerThread {
+    private static class FrameDetectorThread extends HandlerThread {
 
-        Handler threadHandler;
-        Handler mainThreadhandler;
+        private FrameDetectorThread() {
+            super("FrameDetectorThread", Process.THREAD_PRIORITY_URGENT_DISPLAY);
+        }
+    }
 
-        FrameDetector detector;
 
+    private static class FrameDetectorHandler extends Handler {
         //Incoming message codes
-        public static final int START_DETECTOR = 0;
-        public static final int PROCESS_FRAME = 1;
-        public static final int STOP_DETECTOR = 2;
-        public static final int RESET_DETECTOR = 3;
+        private static final int START_DETECTOR = 0;
+        private static final int PROCESS_FRAME = 1;
+        private static final int STOP_DETECTOR = 2;
+        private static final int RESET_DETECTOR = 3;
+        private static final String LOG_TAG = "Affectiva";
+        private Context context;
+        private FrameDetector detector;
+        private MainThreadHandler mainThreadHandler;
 
-        Context context;
 
-        private final static String LOG_TAG = "Affectiva";
-
-        public FrameDetectorThread(String string, Handler mainHandler, Context context) {
-            super(string, Process.THREAD_PRIORITY_URGENT_DISPLAY);
-            mainThreadhandler = mainHandler;
+        private FrameDetectorHandler(Context context, MainThreadHandler mainThreadHandler, HandlerThread detectorThread) {
+            super(detectorThread.getLooper());
             this.context = context;
+            this.mainThreadHandler = mainThreadHandler;
         }
 
-        /**
-         * The getLooper() method blocks the calling thread, so it will cause our calling thread to block until this thread is
-         * ready to start receiving messages. This should ensure that the threadHandler object is not null in any of the public
-         * methods below.
-         */
-        public void waitUntilLooperAndHandlerCreated() {
-            threadHandler = new Handler(getLooper()) {
-                public void handleMessage(Message msg) {
-                    switch (msg.what) {
-                        case START_DETECTOR:
-                            startDetectorAsync();
-                            break;
-                        case PROCESS_FRAME:
-                            detectFrameAsync((InputData) msg.obj);
-                            break;
-                        case STOP_DETECTOR:
-                            stopDetectorAsync();
-                            mainThreadhandler = null;
-                            context = null;
-                            detector = null;
-                            Log.e("ThreadTesting","Quitting Thread");
-                            FrameDetectorThread.this.quit();
-                            break;
-                        case RESET_DETECTOR:
-                            resetDetectorAsync();
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            };
+        private void sendStartMessage() {
+            sendMessage(obtainMessage(START_DETECTOR));
         }
 
-        /**
+        private void sendStopMessage() {
+            emptyQueue();
+            sendMessage(obtainMessage(STOP_DETECTOR));
+        }
+
+        private void sendProcessFrameMessage(InputData data) {
+            sendMessage(obtainMessage(PROCESS_FRAME, data));
+        }
+
+        private void sendResetMessage() {
+            emptyQueue();
+            sendMessage(obtainMessage(RESET_DETECTOR));
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case START_DETECTOR:
+                    startDetector();
+                    break;
+                case PROCESS_FRAME:
+                    processFrame((InputData) msg.obj);
+                    break;
+                case STOP_DETECTOR:
+                    stopDetector();
+                    mainThreadHandler = null;
+                    context = null;
+                    detector = null;
+                    Log.d(LOG_TAG, "Quitting FrameDetectorThread");
+                    ((HandlerThread) getLooper().getThread()).quit();
+                    break;
+                case RESET_DETECTOR:
+                    resetDetector();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        /*
          * When resetting or stopping the detector, we don't want our command to have to wait for messages in front of it to
          * finish processing, so we purge any non-critical messages, namely PROCESS_FRAME and RESET_DETECTOR.
          */
         private void emptyQueue() {
-            threadHandler.removeMessages(PROCESS_FRAME);
-            threadHandler.removeMessages(RESET_DETECTOR);
+            removeMessages(PROCESS_FRAME);
+            removeMessages(RESET_DETECTOR);
         }
 
-        public void startDetector() {
-            threadHandler.obtainMessage(START_DETECTOR).sendToTarget();
-        }
-
-        public void stopDetector() {
-            emptyQueue();
-            threadHandler.obtainMessage(STOP_DETECTOR).sendToTarget();
-        }
-
-        public void sendFrameToDetector(Frame frame, float timestamp) {
-            threadHandler.obtainMessage(PROCESS_FRAME,new InputData(frame,timestamp)).sendToTarget();
-        }
-
-        public void resetDetector() {
-            emptyQueue();
-            threadHandler.obtainMessage(RESET_DETECTOR).sendToTarget();
-        }
-
-        private void startDetectorAsync() {
+        private void startDetector() {
 
             detector = new FrameDetector(context);
             detector.setLicensePath("Affdex.license");
-            detector.setDetectAllEmotions(true);
-            detector.setDetectAllExpressions(true);
+
+            // Turn off all detection except for gender
+            detector.setDetectAllEmotions(false);
+            detector.setDetectAllExpressions(false);
+            detector.setDetectAllAppearance(false);
+            detector.setDetectAllEmojis(false);
+            detector.setDetectGender(true);
+
             detector.setImageListener(new Detector.ImageListener() {
                 @Override
                 public void onImageResults(List<Face> faceList, Frame frame, float timeStamp) {
                     OutputData data = new OutputData(faceList, frame, timeStamp);
-                    mainThreadhandler.obtainMessage(MainThreadHandler.FRAME_READY, data).sendToTarget();
+                    mainThreadHandler.sendFrameReadyMessage(data);
                 }
             });
 
             detector.start();
 
-            mainThreadhandler.obtainMessage(MainThreadHandler.DETECTOR_STARTED).sendToTarget();
+            mainThreadHandler.sendDetectorStartedMessage();
         }
 
-        public void stopDetectorAsync() {
+        private void stopDetector() {
             detector.setImageListener(null);
-            detector.stop();
+            try {
+                detector.stop();
+            } catch (Exception e) {
+                Log.e(LOG_TAG, e.getMessage());
+            }
         }
 
-        void detectFrameAsync(InputData data) {
+        private void processFrame(InputData data) {
             if (detector.isRunning()) {
                 detector.process(data.frame, data.timestamp);
             }
         }
 
-        void resetDetectorAsync() {
+        private void resetDetector() {
             if (detector.isRunning()) {
                 detector.reset();
             }
             Log.i(LOG_TAG, "Detector reset");
         }
-
-        class OutputData {
-            public final List<Face> faces;
-            public final Frame frame;
-            public final float timestamp;
-
-            public OutputData(List<Face> faces, Frame frame, float timestamp) {
-                this.faces = faces;
-                this.frame = frame;
-                this.timestamp = timestamp;
-            }
-
-        }
-
-        class InputData {
-            public Frame frame;
-            public float timestamp;
-
-            public InputData(Frame frame, float timestamp) {
-                this.frame = frame;
-                this.timestamp = timestamp;
-            }
-        }
-
     }
 
+    private static class OutputData {
+        public final List<Face> faces;
+        public final Frame frame;
+        public final float timestamp;
 
+        public OutputData(List<Face> faces, Frame frame, float timestamp) {
+            this.faces = faces;
+            this.frame = frame;
+            this.timestamp = timestamp;
+        }
+    }
+
+    private static class InputData {
+        public Frame frame;
+        public float timestamp;
+
+        public InputData(Frame frame, float timestamp) {
+            this.frame = frame;
+            this.timestamp = timestamp;
+        }
+    }
 }
