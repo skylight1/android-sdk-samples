@@ -203,8 +203,14 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
             case BROW_RAISE:
                 score = face.expressions.getBrowRaise();
                 break;
-            case CHIN_RAISER:
+            case CHEEK_RAISE:
+                score = face.expressions.getCheekRaise();
+                break;
+            case CHIN_RAISE:
                 score = face.expressions.getChinRaise();
+                break;
+            case DIMPLER:
+                score = face.expressions.getDimpler();
                 break;
             case ENGAGEMENT:
                 score = face.emotions.getEngagement();
@@ -212,8 +218,17 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
             case EYE_CLOSURE:
                 score = face.expressions.getEyeClosure();
                 break;
-            case INNER_BROW_RAISER:
+            case EYE_WIDEN:
+                score = face.expressions.getEyeWiden();
+                break;
+            case INNER_BROW_RAISE:
                 score = face.expressions.getInnerBrowRaise();
+                break;
+            case JAW_DROP:
+                score = face.expressions.getJawDrop();
+                break;
+            case LID_TIGHTEN:
+                score = face.expressions.getLidTighten();
                 break;
             case LIP_DEPRESSOR:
                 score = face.expressions.getLipCornerDepressor();
@@ -224,13 +239,16 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
             case LIP_PUCKER:
                 score = face.expressions.getLipPucker();
                 break;
+            case LIP_STRETCH:
+                score = face.expressions.getLipStretch();
+                break;
             case LIP_SUCK:
                 score = face.expressions.getLipSuck();
                 break;
             case MOUTH_OPEN:
                 score = face.expressions.getMouthOpen();
                 break;
-            case NOSE_WRINKLER:
+            case NOSE_WRINKLE:
                 score = face.expressions.getNoseWrinkle();
                 break;
             case SMILE:

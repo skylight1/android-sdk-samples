@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * A thread to manage the VideoDetector.
- *
+ * <p/>
  * Note: This is required since running the VideoDetector in the main thread will crash the application.
  */
 public class VideoDetectorThread extends Thread implements Detector.ImageListener {
@@ -26,7 +26,7 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
 
     MetricsPanel metricsPanel;
 
-    public VideoDetectorThread(String file, Activity context, MetricsPanel metricsPanel, DrawingView drawingView ) {
+    public VideoDetectorThread(String file, Activity context, MetricsPanel metricsPanel, DrawingView drawingView) {
         filename = file;
         activity = context;
         this.drawingView = drawingView;
@@ -36,22 +36,21 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
     @Override
     public void run() {
 
-        detector = new VideoFileDetector(activity,filename);
+        detector = new VideoFileDetector(activity, filename, 1, Detector.FaceDetectorMode.LARGE_FACES);
 
         detector.setLicensePath("Affdex.license");
         detector.setDetectAllEmotions(true);
         detector.setDetectAllExpressions(true);
+        detector.setDetectAllAppearance(true);
         detector.setImageListener(this);
         try {
             detector.start();
-        } catch ( Exception e) {
+        } catch (Exception e) {
             Log.e(LOG_TAG, e.getMessage());
         } finally {
             detector.stop();
         }
     }
-
-
 
 
     @Override
@@ -61,14 +60,85 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
         final List<Face> faces = list;
 
         activity.runOnUiThread(new Runnable() {
+            @SuppressWarnings("SuspiciousNameCombination")
             @Override
             public void run() {
                 //update metrics
                 if (faces != null && faces.size() > 0) {
                     Face face = faces.get(0);
-                    for (Metrics metric : Metrics.values()) {
-                        metricsPanel.setMetricValue(metric,getScore(metric,face));
+                    // process the numeric metrics (scored or measured)
+                    Metrics[] allMetrics = Metrics.values();
+                    for (int n = 0; n < Metrics.numberOfEmotions() + Metrics.numberOfExpressions() + Metrics.numberOfMeasurements(); n++) {
+                        Metrics metric = allMetrics[n];
+                        metricsPanel.setMetricValue(metric, getScore(metric, face));
                     }
+
+                    // set the text for the appearance metrics
+                    int resId = 0;
+                    switch (face.appearance.getGender()) {
+                        case UNKNOWN:
+                            resId = R.string.unknown;
+                            break;
+                        case FEMALE:
+                            resId = R.string.gender_female;
+                            break;
+                        case MALE:
+                            resId = R.string.gender_male;
+                            break;
+                    }
+                    metricsPanel.setMetricText(Metrics.GENDER, resId);
+
+                    switch (face.appearance.getAge()) {
+                        case AGE_UNKNOWN:
+                            resId = R.string.unknown;
+                            break;
+                        case AGE_UNDER_18:
+                            resId = R.string.age_under_18;
+                            break;
+                        case AGE_18_24:
+                            resId = R.string.age_18_24;
+                            break;
+                        case AGE_25_34:
+                            resId = R.string.age_25_34;
+                            break;
+                        case AGE_35_44:
+                            resId = R.string.age_35_44;
+                            break;
+                        case AGE_45_54:
+                            resId = R.string.age_45_54;
+                            break;
+                        case AGE_55_64:
+                            resId = R.string.age_55_64;
+                            break;
+                        case AGE_65_PLUS:
+                            resId = R.string.age_65_plus;
+                            break;
+                    }
+                    metricsPanel.setMetricText(Metrics.AGE, resId);
+
+                    switch (face.appearance.getEthnicity()) {
+                        case UNKNOWN:
+                            resId = R.string.unknown;
+                            break;
+                        case CAUCASIAN:
+                            resId = R.string.ethnicity_caucasian;
+                            break;
+                        case BLACK_AFRICAN:
+                            resId = R.string.ethnicity_black_african;
+                            break;
+                        case EAST_ASIAN:
+                            resId = R.string.ethnicity_east_asian;
+                            break;
+                        case SOUTH_ASIAN:
+                            resId = R.string.ethnicity_south_asian;
+                            break;
+                        case HISPANIC:
+                            resId = R.string.ethnicity_hispanic;
+                            break;
+                    }
+                    metricsPanel.setMetricText(Metrics.ETHNICITY, resId);
+
+
                     PointF[] facePoints = face.getFacePoints();
                     int frameWidth = frame.getWidth();
                     int frameHeight = frame.getHeight();
@@ -79,8 +149,8 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
                         frameWidth = frameHeight;
                         frameHeight = temp;
                     }
-                    Frame.revertPointRotation(facePoints,frameWidth,frameHeight,frame.getTargetRotation());
-                    drawingView.drawFrame(frame,facePoints);
+                    Frame.revertPointRotation(facePoints, frameWidth, frameHeight, frame.getTargetRotation());
+                    drawingView.drawFrame(frame, facePoints);
                 } else {
                     for (Metrics metric : Metrics.values()) {
                         metricsPanel.setMetricNA(metric);
@@ -90,7 +160,7 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
 
             }
         });
-        }
+    }
 
 
     float getScore(Metrics metric, Face face) {
@@ -128,8 +198,14 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
             case BROW_RAISE:
                 score = face.expressions.getBrowRaise();
                 break;
+            case CHEEK_RAISE:
+                score = face.expressions.getCheekRaise();
+                break;
             case CHIN_RAISER:
                 score = face.expressions.getChinRaise();
+                break;
+            case DIMPLER:
+                score = face.expressions.getDimpler();
                 break;
             case ENGAGEMENT:
                 score = face.emotions.getEngagement();
@@ -137,8 +213,17 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
             case EYE_CLOSURE:
                 score = face.expressions.getEyeClosure();
                 break;
+            case EYE_WIDEN:
+                score = face.expressions.getEyeWiden();
+                break;
             case INNER_BROW_RAISER:
                 score = face.expressions.getInnerBrowRaise();
+                break;
+            case JAW_DROP:
+                score = face.expressions.getJawDrop();
+                break;
+            case LID_TIGHTEN:
+                score = face.expressions.getLidTighten();
                 break;
             case LIP_DEPRESSOR:
                 score = face.expressions.getLipCornerDepressor();
@@ -148,6 +233,9 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
                 break;
             case LIP_PUCKER:
                 score = face.expressions.getLipPucker();
+                break;
+            case LIP_STRETCH:
+                score = face.expressions.getLipStretch();
                 break;
             case LIP_SUCK:
                 score = face.expressions.getLipSuck();

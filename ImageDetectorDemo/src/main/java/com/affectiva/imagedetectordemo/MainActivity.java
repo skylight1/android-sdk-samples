@@ -14,7 +14,6 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -23,19 +22,16 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.affectiva.android.affdex.sdk.Frame;
 import com.affectiva.android.affdex.sdk.detector.Detector;
 import com.affectiva.android.affdex.sdk.detector.Face;
 import com.affectiva.android.affdex.sdk.detector.PhotoDetector;
-import com.affectiva.android.affdex.sdk.Frame;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.List;
-
 /**
  * A sample app showing how to use ImageDetector.
  *
@@ -177,8 +173,9 @@ public class MainActivity extends Activity implements Detector.ImageListener {
         frame = new Frame.BitmapFrame(bitmap, Frame.COLOR_FORMAT.UNKNOWN_TYPE);
 
         detector = new PhotoDetector(this);
-        detector.setDetectAllEmotions(true); //emotions
-        detector.setDetectAllExpressions(true); //expressions
+        detector.setDetectAllEmotions(true);
+        detector.setDetectAllExpressions(true);
+        detector.setDetectAllAppearance(true);
         detector.setLicensePath("Affdex.license");
         detector.setImageListener(this);
 
@@ -188,6 +185,7 @@ public class MainActivity extends Activity implements Detector.ImageListener {
 
     }
 
+    @SuppressWarnings("SuspiciousNameCombination")
     Bitmap drawCanvas(int width, int height, PointF[] points, Frame frame, Paint circlePaint) {
         if (width <= 0 || height <= 0) {
             return null;
@@ -248,12 +246,12 @@ public class MainActivity extends Activity implements Detector.ImageListener {
         if (points != null) {
             //Save our own reference to the list of points, in case the previous reference is overwritten by the main thread.
 
-            for (int i = 0; i < points.length; i++) {
+            for (PointF point : points) {
 
                 //transform from the camera coordinates to our screen coordinates
                 //The camera preview is displayed as a mirror, so X pts have to be mirrored back.
-                float x = (points[i].x * scaling) + leftOffset;
-                float y = (points[i].y * scaling) + topOffset;
+                float x = (point.x * scaling) + leftOffset;
+                float y = (point.y * scaling) + topOffset;
 
                 c.drawCircle(x, y, radius, circlePaint);
             }
@@ -296,13 +294,9 @@ public class MainActivity extends Activity implements Detector.ImageListener {
 
         PointF[] points = null;
 
-
-
         if (faces != null && faces.size() > 0) {
             Face face = faces.get(0);
-            for (int n = 0; n < MetricsManager.getTotalNumMetrics(); n++) {
-                metricScoreTextViews[n].setText(String.format("%.3f", getScore(n, face)));
-            }
+            setMetricTextViewText(face);
             points = face.getFacePoints();
         } else {
             for (int n = 0; n < MetricsManager.getTotalNumMetrics(); n++) {
@@ -315,6 +309,78 @@ public class MainActivity extends Activity implements Detector.ImageListener {
         Bitmap imageBitmap = drawCanvas(imageView.getWidth(),imageView.getHeight(),points,image,circlePaint);
         if (imageBitmap != null)
             imageView.setImageBitmap(imageBitmap);
+    }
+
+    private void setMetricTextViewText(Face face) {
+        // set the text for all the numeric metrics (scored or measured)
+        for (int n = 0; n < MetricsManager.getTotalNumNumericMetrics(); n++) {
+            metricScoreTextViews[n].setText(String.format("%.3f", getScore(n, face)));
+        }
+
+        // set the text for the appearance metrics
+        String textValue="";
+        switch (face.appearance.getGender()) {
+            case UNKNOWN:
+                textValue = "unknown";
+                break;
+            case FEMALE:
+                textValue = "female";
+                break;
+            case MALE:
+                textValue = "male";
+                break;
+        }
+        metricScoreTextViews[MetricsManager.GENDER].setText(textValue);
+
+        switch (face.appearance.getAge()) {
+            case AGE_UNKNOWN:
+                textValue = "unknown";
+                break;
+            case AGE_UNDER_18:
+                textValue = "under 18";
+                break;
+            case AGE_18_24:
+                textValue = "18-24";
+                break;
+            case AGE_25_34:
+                textValue = "25-34";
+                break;
+            case AGE_35_44:
+                textValue = "35-44";
+                break;
+            case AGE_45_54:
+                textValue = "45-54";
+                break;
+            case AGE_55_64:
+                textValue = "55-64";
+                break;
+            case AGE_65_PLUS:
+                textValue = "65+";
+                break;
+        }
+        metricScoreTextViews[MetricsManager.AGE].setText(textValue);
+
+        switch (face.appearance.getEthnicity()) {
+            case UNKNOWN:
+                textValue = "unknown";
+                break;
+            case CAUCASIAN:
+                textValue = "caucasian";
+                break;
+            case BLACK_AFRICAN:
+                textValue = "black african";
+                break;
+            case EAST_ASIAN:
+                textValue = "east asian";
+                break;
+            case SOUTH_ASIAN:
+                textValue = "south asian";
+                break;
+            case HISPANIC:
+                textValue = "hispanic";
+                break;
+        }
+        metricScoreTextViews[MetricsManager.ETHNICITY].setText(textValue);
     }
 
     float getScore(int metricCode, Face face) {
@@ -352,8 +418,14 @@ public class MainActivity extends Activity implements Detector.ImageListener {
             case MetricsManager.BROW_RAISE:
                 score = face.expressions.getBrowRaise();
                 break;
-            case MetricsManager.CHIN_RAISER:
+            case MetricsManager.CHEEK_RAISE:
+                score = face.expressions.getCheekRaise();
+                break;
+            case MetricsManager.CHIN_RAISE:
                 score = face.expressions.getChinRaise();
+                break;
+            case MetricsManager.DIMPLER:
+                score = face.expressions.getDimpler();
                 break;
             case MetricsManager.ENGAGEMENT:
                 score = face.emotions.getEngagement();
@@ -361,8 +433,17 @@ public class MainActivity extends Activity implements Detector.ImageListener {
             case MetricsManager.EYE_CLOSURE:
                 score = face.expressions.getEyeClosure();
                 break;
-            case MetricsManager.INNER_BROW_RAISER:
+            case MetricsManager.EYE_WIDEN:
+                score = face.expressions.getEyeWiden();
+                break;
+            case MetricsManager.INNER_BROW_RAISE:
                 score = face.expressions.getInnerBrowRaise();
+                break;
+            case MetricsManager.JAW_DROP:
+                score = face.expressions.getJawDrop();
+                break;
+            case MetricsManager.LID_TIGHTEN:
+                score = face.expressions.getLidTighten();
                 break;
             case MetricsManager.LIP_DEPRESSOR:
                 score = face.expressions.getLipCornerDepressor();
@@ -373,13 +454,16 @@ public class MainActivity extends Activity implements Detector.ImageListener {
             case MetricsManager.LIP_PUCKER:
                 score = face.expressions.getLipPucker();
                 break;
+            case MetricsManager.LIP_STRETCH:
+                score = face.expressions.getLipStretch();
+                break;
             case MetricsManager.LIP_SUCK:
                 score = face.expressions.getLipSuck();
                 break;
             case MetricsManager.MOUTH_OPEN:
                 score = face.expressions.getMouthOpen();
                 break;
-            case MetricsManager.NOSE_WRINKLER:
+            case MetricsManager.NOSE_WRINKLE:
                 score = face.expressions.getNoseWrinkle();
                 break;
             case MetricsManager.SMILE:
@@ -388,7 +472,7 @@ public class MainActivity extends Activity implements Detector.ImageListener {
             case MetricsManager.SMIRK:
                 score = face.expressions.getSmirk();
                 break;
-            case MetricsManager.UPPER_LIP_RAISER:
+            case MetricsManager.UPPER_LIP_RAISE:
                 score = face.expressions.getUpperLipRaise();
                 break;
             case MetricsManager.VALENCE:

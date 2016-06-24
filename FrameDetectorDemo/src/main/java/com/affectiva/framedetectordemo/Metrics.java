@@ -19,15 +19,21 @@ public enum Metrics {
     ATTENTION,
     BROW_FURROW,
     BROW_RAISE,
-    CHIN_RAISER,
+    CHEEK_RAISE,
+    CHIN_RAISE,
+    DIMPLER,
     EYE_CLOSURE,
-    INNER_BROW_RAISER,
+    EYE_WIDEN,
+    INNER_BROW_RAISE,
+    JAW_DROP,
+    LID_TIGHTEN,
     LIP_DEPRESSOR,
     LIP_PRESS,
     LIP_PUCKER,
+    LIP_STRETCH,
     LIP_SUCK,
     MOUTH_OPEN,
-    NOSE_WRINKLER,
+    NOSE_WRINKLE,
     SMILE,
     SMIRK,
     UPPER_LIP_RAISER,
@@ -42,24 +48,16 @@ public enum Metrics {
         return toString().replace("_"," ");
     }
 
-    String getLowerCaseName() {
-        return toString().toLowerCase();
-    }
-
     static int numberOfEmotions() {
         return ATTENTION.ordinal();
-    }
-
-    static int numberOfMeasurements() {
-        return Metrics.values().length - numberOfEmotions() - numberOfExpressions();
     }
 
     static int numberOfExpressions() {
         return YAW.ordinal() - numberOfEmotions();
     }
 
-    static int numberOfMetrics() {
-        return Metrics.values().length;
+    static int numberOfMeasurements() {
+        return Metrics.values().length - numberOfEmotions() - numberOfExpressions();
     }
 
     /**
