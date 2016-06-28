@@ -168,7 +168,96 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
         stopCamera();
     }
 
-    float getScore(Metrics metric, Face face) {
+    private void setMetricTextViewText(Face face) {
+        // set the text for all the numeric metrics (scored or measured)
+        for (Metrics metric : Metrics.getEmotions()) {
+            metricsPanel.setMetricFloatValue(metric,getScore(metric,face));
+        }
+        for (Metrics metric : Metrics.getExpressions()) {
+            metricsPanel.setMetricFloatValue(metric,getScore(metric,face));
+        }
+        for (Metrics metric : Metrics.getMeasurements()) {
+            metricsPanel.setMetricFloatValue(metric,getScore(metric,face));
+        }
+
+        // set the text for the appearance metrics
+        String textValue="";
+
+        switch (face.appearance.getGlasses()) {
+            case NO:
+                textValue = "no";
+                break;
+            case YES:
+                textValue = "yes";
+                break;
+        }
+        metricsPanel.setMetricTextValue(Metrics.GLASSES, textValue);
+
+        switch (face.appearance.getGender()) {
+            case UNKNOWN:
+                textValue = "unknown";
+                break;
+            case FEMALE:
+                textValue = "female";
+                break;
+            case MALE:
+                textValue = "male";
+                break;
+        }
+        metricsPanel.setMetricTextValue(Metrics.GENDER, textValue);
+
+        switch (face.appearance.getAge()) {
+            case AGE_UNKNOWN:
+                textValue = "unknown";
+                break;
+            case AGE_UNDER_18:
+                textValue = "under 18";
+                break;
+            case AGE_18_24:
+                textValue = "18-24";
+                break;
+            case AGE_25_34:
+                textValue = "25-34";
+                break;
+            case AGE_35_44:
+                textValue = "35-44";
+                break;
+            case AGE_45_54:
+                textValue = "45-54";
+                break;
+            case AGE_55_64:
+                textValue = "55-64";
+                break;
+            case AGE_65_PLUS:
+                textValue = "65+";
+                break;
+        }
+        metricsPanel.setMetricTextValue(Metrics.AGE, textValue);
+
+        switch (face.appearance.getEthnicity()) {
+            case UNKNOWN:
+                textValue = "unknown";
+                break;
+            case CAUCASIAN:
+                textValue = "caucasian";
+                break;
+            case BLACK_AFRICAN:
+                textValue = "black african";
+                break;
+            case EAST_ASIAN:
+                textValue = "east asian";
+                break;
+            case SOUTH_ASIAN:
+                textValue = "south asian";
+                break;
+            case HISPANIC:
+                textValue = "hispanic";
+                break;
+        }
+        metricsPanel.setMetricTextValue(Metrics.ETHNICITY, textValue);
+    }
+
+    private float getScore(Metrics metric, Face face) {
 
         float score;
 
@@ -322,9 +411,7 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
             }
         } else {
             Face face = faces.get(0);
-            for (Metrics metric : Metrics.values()) {
-                metricsPanel.setMetricValue(metric,getScore(metric,face));
-            }
+            setMetricTextViewText(face);
         }
 
         numberSDKFramesReceived += 1;
