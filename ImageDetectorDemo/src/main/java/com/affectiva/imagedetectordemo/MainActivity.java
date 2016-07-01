@@ -172,7 +172,7 @@ public class MainActivity extends Activity implements Detector.ImageListener {
 
         frame = new Frame.BitmapFrame(bitmap, Frame.COLOR_FORMAT.UNKNOWN_TYPE);
 
-        detector = new PhotoDetector(this);
+        detector = new PhotoDetector(this,1, Detector.FaceDetectorMode.LARGE_FACES );
         detector.setDetectAllEmotions(true);
         detector.setDetectAllExpressions(true);
         detector.setDetectAllAppearance(true);
