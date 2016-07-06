@@ -235,7 +235,7 @@ public class MainActivity extends Activity implements Detector.ImageListener {
             leftOffset = (canvasWidth - scaledWidth)/2;
         }
 
-        float scaling = (float)scaledWidth/(float)frameWidth;
+        float scaling = (float)scaledWidth/(float)frame.getOriginalBitmapFrame().getWidth();
 
         Matrix matrix = new Matrix();
         matrix.postRotate((float)frameRot.toDouble());
