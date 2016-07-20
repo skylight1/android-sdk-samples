@@ -16,19 +16,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.affectiva.android.affdex.sdk.Frame;
-import com.affectiva.android.affdex.sdk.detector.Detector;
-import com.affectiva.android.affdex.sdk.detector.Face;
-
-import java.util.List;
-
 /*
 A sample app showing how to use VideoFileDetector. This detector must be run on a non-Looper thread.
+*/
 
-This app is not a release version and is known to have bugs. Specifically, if the user tries to load a video while the Detector is processing, the app will crash.
- */
-
-public class MainActivity extends Activity implements Detector.ImageListener {
+public class MainActivity extends Activity {
 
     private static String LOG_TAG = "Affectiva";
     private static final int PICK_VIDEO = 100;
@@ -50,17 +42,20 @@ public class MainActivity extends Activity implements Detector.ImageListener {
         videoThread.start();
     }
 
-    public void choose_video(View view) {
+    public void chooseVideo(View view) {
+        // abort current video detection in progress, if any
+        if (videoThread != null) {
+            videoThread.abort();
+        }
         Intent mediaChooser = new Intent(Intent.ACTION_GET_CONTENT);
         mediaChooser.setType("video/*");
         startActivityForResult(mediaChooser, PICK_VIDEO);
-
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.e(LOG_TAG, "onActivityForResult");
+        Log.d(LOG_TAG, "onActivityForResult");
         if (resultCode == RESULT_OK && requestCode == PICK_VIDEO) {
             Uri videoUri = data.getData();
             String path = getPath(this,videoUri);
@@ -69,12 +64,6 @@ public class MainActivity extends Activity implements Detector.ImageListener {
             Toast.makeText(this,"No image selected.",Toast.LENGTH_LONG).show();
         }
     }
-
-    @Override
-    public void onImageResults(List<Face> list, Frame frame, float v) {
-
-    }
-
 
     /**
      * Get a file path from a Uri. This will get the the path for Storage Access

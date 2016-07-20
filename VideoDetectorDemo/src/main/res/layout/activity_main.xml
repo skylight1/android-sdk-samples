@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:text="Choose Video"
             android:layout_alignParentBottom="true"
-            android:onClick="choose_video"/>
+            android:onClick="chooseVideo"/>
     </RelativeLayout>
 
 
