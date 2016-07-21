@@ -262,10 +262,9 @@ public class AsyncFrameDetector {
             detector = new FrameDetector(context);
             detector.setLicensePath("Affdex.license");
 
-            // Turn off all detection except for gender
-            detector.setDetectAllEmotions(false);
-            detector.setDetectAllExpressions(false);
-            detector.setDetectAllAppearance(false);
+            detector.setDetectAllEmotions(true);
+            detector.setDetectAllExpressions(true);
+            detector.setDetectAllAppearances(true);
             detector.setDetectAllEmojis(false);
             detector.setDetectGender(true);
 

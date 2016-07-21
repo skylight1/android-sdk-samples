@@ -28,8 +28,12 @@ public class MetricsPanel extends Fragment {
         return content;
     }
 
-    public void setMetricValue(Metrics metric, float value) {
+    public void setMetricFloatValue(Metrics metric, float value) {
         metricsTextViews.get(metric).setText(String.format("%.3f", value));
+    }
+
+    public void setMetricTextValue(Metrics metric, String value) {
+        metricsTextViews.get(metric).setText(value);
     }
 
     public void setMetricNA(Metrics metric) {
@@ -54,7 +58,9 @@ public class MetricsPanel extends Fragment {
         container.addView(createHeaderTextView("MEASUREMENTS", context));
         addSetOfMetrics(context,container,Metrics.getMeasurements());
 
-
+        //Populate Measurements
+        container.addView(createHeaderTextView("APPEARANCES", context));
+        addSetOfMetrics(context,container,Metrics.getAppearances());
     }
 
     void addSetOfMetrics(Context context, LinearLayout container, Metrics[] metrics) {

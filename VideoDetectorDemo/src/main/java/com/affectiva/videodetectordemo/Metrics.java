@@ -19,12 +19,18 @@ public enum Metrics {
     ATTENTION,
     BROW_FURROW,
     BROW_RAISE,
+    CHEEK_RAISE,
     CHIN_RAISER,
+    DIMPLER,
     EYE_CLOSURE,
+    EYE_WIDEN,
     INNER_BROW_RAISER,
+    JAW_DROP,
+    LID_TIGHTEN,
     LIP_DEPRESSOR,
     LIP_PRESS,
     LIP_PUCKER,
+    LIP_STRETCH,
     LIP_SUCK,
     MOUTH_OPEN,
     NOSE_WRINKLER,
@@ -36,10 +42,15 @@ public enum Metrics {
     YAW,
     PITCH,
     ROLL,
-    INTER_OCULAR_DISTANCE;
+    INTER_OCULAR_DISTANCE,
+
+    //Appearance
+    GENDER,
+    AGE,
+    ETHNICITY;
 
     String getUpperCaseName() {
-        return toString().replace("_"," ");
+        return toString().replace("_", " ");
     }
 
     String getLowerCaseName() {
@@ -47,16 +58,21 @@ public enum Metrics {
     }
 
     static int numberOfEmotions() {
-        return ATTENTION.ordinal();
-    }
-
-    static int numberOfMeasurements() {
-        return Metrics.values().length - numberOfEmotions() - numberOfExpressions();
+        return VALENCE.ordinal() + 1;
     }
 
     static int numberOfExpressions() {
-        return YAW.ordinal() - numberOfEmotions();
+        return UPPER_LIP_RAISER.ordinal() - numberOfEmotions() + 1;
     }
+
+    static int numberOfMeasurements() {
+        return INTER_OCULAR_DISTANCE.ordinal() - numberOfEmotions() - numberOfExpressions() + 1;
+    }
+
+    static int numberOfAppearances() {
+        return ETHNICITY.ordinal() - numberOfMeasurements() - numberOfExpressions() - numberOfEmotions() + 1;
+    }
+
 
     static int numberOfMetrics() {
         return Metrics.values().length;
@@ -68,9 +84,7 @@ public enum Metrics {
     static Metrics[] getEmotions() {
         Metrics[] emotions = new Metrics[numberOfEmotions()];
         Metrics[] allMetrics = Metrics.values();
-        for (int n = 0; n < numberOfEmotions(); n++) {
-            emotions[n] = allMetrics[n];
-        }
+        System.arraycopy(allMetrics, 0, emotions, 0, numberOfEmotions());
         return emotions;
     }
 
@@ -80,18 +94,23 @@ public enum Metrics {
     static Metrics[] getExpressions() {
         Metrics[] expressions = new Metrics[numberOfExpressions()];
         Metrics[] allMetrics = Metrics.values();
-        for (int n = 0; n < numberOfExpressions(); n++) {
-            expressions[n] = allMetrics[n + numberOfEmotions()];
-        }
+        System.arraycopy(allMetrics, numberOfEmotions(), expressions, 0, numberOfExpressions());
         return expressions;
     }
 
     static Metrics[] getMeasurements() {
         Metrics[] measurements = new Metrics[numberOfMeasurements()];
         Metrics[] allMetrics = Metrics.values();
-        for (int n = 0; n < numberOfMeasurements(); n++) {
-            measurements[n] = allMetrics[n + numberOfEmotions() + numberOfExpressions()];
-        }
+        System.arraycopy(allMetrics, numberOfEmotions()+ numberOfExpressions(),
+                measurements, 0, numberOfMeasurements());
         return measurements;
+    }
+
+    static Metrics[] getAppearances() {
+        Metrics[] appearances = new Metrics[numberOfAppearances()];
+        Metrics[] allMetrics = Metrics.values();
+        System.arraycopy(allMetrics, numberOfEmotions()+ numberOfExpressions() + numberOfMeasurements(),
+                appearances, 0, numberOfAppearances());
+        return appearances;
     }
 }
