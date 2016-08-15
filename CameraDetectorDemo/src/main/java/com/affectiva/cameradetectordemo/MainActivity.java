@@ -2,7 +2,6 @@ package com.affectiva.cameradetectordemo;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -133,7 +132,6 @@ public class MainActivity extends Activity implements Detector.ImageListener, Ca
         });
 
         detector = new CameraDetector(this, CameraDetector.CameraType.CAMERA_FRONT, cameraPreview);
-        detector.setLicensePath("Affdex.license");
         detector.setDetectSmile(true);
         detector.setDetectAge(true);
         detector.setDetectEthnicity(true);
@@ -147,14 +145,12 @@ public class MainActivity extends Activity implements Detector.ImageListener, Ca
         if (isSDKStarted) {
             startDetector();
         }
-
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         stopDetector();
-
     }
 
     void startDetector() {
@@ -184,7 +180,6 @@ public class MainActivity extends Activity implements Detector.ImageListener, Ca
         } else {
             Face face = list.get(0);
             smileTextView.setText(String.format("SMILE\n%.2f",face.expressions.getSmile()));
-            Log.d(LOG_TAG, Integer.toString(face.getId()) + " Age: " + face.appearance.getAge().name());
             switch (face.appearance.getAge()) {
                 case AGE_UNKNOWN:
                     ageTextView.setText("");
@@ -212,7 +207,6 @@ public class MainActivity extends Activity implements Detector.ImageListener, Ca
                     break;
             }
 
-            Log.d(LOG_TAG, Integer.toString(face.getId()) + " Ethnicity: " + face.appearance.getEthnicity().name());
             switch (face.appearance.getEthnicity()) {
                 case UNKNOWN:
                     ethnicityTextView.setText("");

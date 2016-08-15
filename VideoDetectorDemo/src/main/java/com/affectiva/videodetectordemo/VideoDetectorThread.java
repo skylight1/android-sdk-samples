@@ -38,7 +38,6 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
 
         detector = new VideoFileDetector(activity, filename, 1, Detector.FaceDetectorMode.LARGE_FACES);
 
-        detector.setLicensePath("Affdex.license");
         detector.setDetectAllEmotions(true);
         detector.setDetectAllExpressions(true);
         detector.setDetectAllAppearances(true);

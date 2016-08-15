@@ -100,7 +100,6 @@ public class DetectorService extends Service {
             // Set up the FrameDetector.  For the purposes of this sample app, we'll just request
             // listen for face events and request valence scores.
             frameDetector = new FrameDetector(context);
-            frameDetector.setLicensePath("Affdex.license");
             frameDetector.setDetectValence(true);
             listener = new DetectorListener(context);
             frameDetector.setImageListener(listener);
