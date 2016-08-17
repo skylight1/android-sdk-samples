@@ -260,8 +260,6 @@ public class AsyncFrameDetector {
         private void startDetector() {
 
             detector = new FrameDetector(context);
-            detector.setLicensePath("Affdex.license");
-
             detector.setDetectAllEmotions(true);
             detector.setDetectAllExpressions(true);
             detector.setDetectAllAppearances(true);
