@@ -13,18 +13,19 @@ import java.util.List;
 
 /**
  * A thread to manage the VideoDetector.
- * <p/>
+ * <p>
  * Note: This is required since running the VideoDetector in the main thread will crash the application.
  */
 public class VideoDetectorThread extends Thread implements Detector.ImageListener {
 
-    String filename;
-    VideoFileDetector detector;
-    Activity activity;
-    public static String LOG_TAG = "Affectiva";
-    DrawingView drawingView;
-
-    MetricsPanel metricsPanel;
+    private static String LOG_TAG = "Affectiva";
+    private String filename;
+    private VideoFileDetector detector;
+    private Activity activity;
+    private DrawingView drawingView;
+    private MetricsPanel metricsPanel;
+    private volatile boolean abortRequested;
+    private Object completeSignal = new Object();
 
     public VideoDetectorThread(String file, Activity context, MetricsPanel metricsPanel, DrawingView drawingView) {
         filename = file;
@@ -35,10 +36,7 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
 
     @Override
     public void run() {
-
         detector = new VideoFileDetector(activity, filename, 1, Detector.FaceDetectorMode.LARGE_FACES);
-
-        detector.setLicensePath("Affdex.license");
         detector.setDetectAllEmotions(true);
         detector.setDetectAllExpressions(true);
         detector.setDetectAllAppearances(true);
@@ -48,16 +46,27 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
         } catch (Exception e) {
             Log.e(LOG_TAG, e.getMessage());
         } finally {
-            detector.stop();
+            if (detector.isRunning()) {
+                detector.stop();
+            }
+            // notify waiting threads that we're done
+            synchronized (completeSignal) {
+                completeSignal.notify();
+            }
         }
     }
-
 
     @Override
     public void onImageResults(List<Face> list, Frame image, final float timestamp) {
 
         final Frame frame = image;
         final List<Face> faces = list;
+
+        if (abortRequested) {
+            detector.stop();
+            abortRequested = false;
+            return;
+        }
 
         activity.runOnUiThread(new Runnable() {
             @SuppressWarnings("SuspiciousNameCombination")
@@ -162,8 +171,26 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
         });
     }
 
+    /**
+     * If detection is in progress, abort.  This call will wait for detection to stop before
+     * returning.
+     */
+    void abort() {
+        if (isAlive()) {
+            // set a flag which will be monitored in onImageResults
+            abortRequested = true;
 
-    float getScore(Metrics metric, Face face) {
+            // wait for background thread to finish before returning
+            synchronized (completeSignal) {
+                try {
+                    completeSignal.wait();
+                } catch (InterruptedException e) {
+                }
+            }
+        }
+    }
+
+    private float getScore(Metrics metric, Face face) {
 
         float score;
 
@@ -276,5 +303,4 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
         }
         return score;
     }
-
 }

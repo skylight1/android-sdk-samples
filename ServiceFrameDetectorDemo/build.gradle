@@ -9,7 +9,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 23
         versionCode 1
-        versionName "3.1-02"
+        versionName "3.1.1-01"
         setProperty("archivesBaseName", "$project.name-$versionName-$versionCode")
     }
     buildTypes {
@@ -25,7 +25,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:support-v4:23.4.0'
-    compile('com.affectiva.android:affdexsdk:3.1')
+    compile('com.affectiva.android:affdexsdk:3.1.1')
 }
 
 // build a signed release apk only if the environment is configured

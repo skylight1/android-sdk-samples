@@ -176,7 +176,6 @@ public class MainActivity extends Activity implements Detector.ImageListener {
         detector.setDetectAllEmotions(true);
         detector.setDetectAllExpressions(true);
         detector.setDetectAllAppearances(true);
-        detector.setLicensePath("Affdex.license");
         detector.setImageListener(this);
 
         startDetector();
