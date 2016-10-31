@@ -49,6 +49,7 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
     //floats to ensure the timestamps we send to FrameDetector are sequentially increasing
     float lastTimestamp = -1f;
     final float epsilon = .01f;
+    long firstFrameTime = -1;
 
     CameraView cameraView; // controls the camera
     AsyncFrameDetector asyncDetector; // runs FrameDetector on a background thread
@@ -376,10 +377,19 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
         numberCameraFramesReceived += 1;
         cameraFPS.setText(String.format("CAM: %.3f", 1000f * (float) numberCameraFramesReceived / (SystemClock.elapsedRealtime() - lastCameraFPSResetTime)));
 
-        float timeStamp = (float)SystemClock.elapsedRealtime()/1000f;
-        if (timeStamp > (lastTimestamp + epsilon)) {
-            lastTimestamp = timeStamp;
-            asyncDetector.process(createFrameFromData(frame,width,height,rotation),timeStamp);
+        float timestamp = 0;
+        long currentTime = SystemClock.elapsedRealtime();
+        if (firstFrameTime == -1) {
+            firstFrameTime = currentTime;
+        } else {
+            timestamp = (currentTime - firstFrameTime) / 1000f;
+        }
+
+        Log.d(LOG_TAG, "timestamp=" + timestamp);
+
+        if (timestamp > (lastTimestamp + epsilon)) {
+            lastTimestamp = timestamp;
+            asyncDetector.process(createFrameFromData(frame,width,height,rotation),timestamp);
         }
     }
 
