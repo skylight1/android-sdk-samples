@@ -489,6 +489,9 @@ public class MainActivity extends Activity implements Detector.ImageListener {
             case MetricsManager.INTER_OCULAR_DISTANCE:
                 score = face.measurements.getInterocularDistance();
                 break;
+            case MetricsManager.BRIGHTNESS:
+                score = face.qualities.getBrightness();
+                break;
             default:
                 score = Float.NaN;
                 break;

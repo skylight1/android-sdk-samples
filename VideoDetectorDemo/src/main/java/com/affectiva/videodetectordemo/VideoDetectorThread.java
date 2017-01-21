@@ -77,7 +77,8 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
                     Face face = faces.get(0);
                     // process the numeric metrics (scored or measured)
                     Metrics[] allMetrics = Metrics.values();
-                    for (int n = 0; n < Metrics.numberOfEmotions() + Metrics.numberOfExpressions() + Metrics.numberOfMeasurements(); n++) {
+                    for (int n = 0; n < Metrics.numberOfEmotions() + Metrics.numberOfExpressions()
+                            + Metrics.numberOfMeasurements() + Metrics.numberOfQualities(); n++) {
                         Metrics metric = allMetrics[n];
                         metricsPanel.setMetricValue(metric, getScore(metric, face));
                     }
@@ -296,6 +297,9 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
                 break;
             case INTER_OCULAR_DISTANCE:
                 score = face.measurements.getInterocularDistance();
+                break;
+            case BRIGHTNESS:
+                score = face.qualities.getBrightness();
                 break;
             default:
                 score = Float.NaN;

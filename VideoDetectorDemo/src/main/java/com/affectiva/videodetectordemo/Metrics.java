@@ -44,6 +44,9 @@ public enum Metrics {
     ROLL,
     INTER_OCULAR_DISTANCE,
 
+    //Qualities
+    BRIGHTNESS,
+
     //Appearance
     GENDER,
     AGE,
@@ -69,8 +72,14 @@ public enum Metrics {
         return INTER_OCULAR_DISTANCE.ordinal() - numberOfEmotions() - numberOfExpressions() + 1;
     }
 
+    static int numberOfQualities() {
+        return BRIGHTNESS.ordinal() - numberOfEmotions() - numberOfExpressions()
+                - numberOfMeasurements() + 1;
+    }
+
     static int numberOfAppearances() {
-        return ETHNICITY.ordinal() - numberOfMeasurements() - numberOfExpressions() - numberOfEmotions() + 1;
+        return ETHNICITY.ordinal() - numberOfQualities() - numberOfMeasurements()
+                - numberOfExpressions() - numberOfEmotions() + 1;
     }
 
 
@@ -106,10 +115,19 @@ public enum Metrics {
         return measurements;
     }
 
+    static Metrics[] getQualities() {
+        Metrics[] qualities = new Metrics[numberOfQualities()];
+        Metrics[] allMetrics = Metrics.values();
+        System.arraycopy(allMetrics, numberOfEmotions()+ numberOfExpressions()
+                + numberOfMeasurements(), qualities, 0, numberOfQualities());
+        return qualities;
+    }
+
     static Metrics[] getAppearances() {
         Metrics[] appearances = new Metrics[numberOfAppearances()];
         Metrics[] allMetrics = Metrics.values();
-        System.arraycopy(allMetrics, numberOfEmotions()+ numberOfExpressions() + numberOfMeasurements(),
+        System.arraycopy(allMetrics, numberOfEmotions()+ numberOfExpressions()
+                + numberOfMeasurements() + numberOfQualities(),
                 appearances, 0, numberOfAppearances());
         return appearances;
     }

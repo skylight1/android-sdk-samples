@@ -48,7 +48,10 @@ public enum Metrics {
     AGE,
     ETHNICITY,
     GENDER,
-    GLASSES;
+    GLASSES,
+
+    // Qualities
+    BRIGHTNESS;
 
 
     String getUpperCaseName() {
@@ -68,7 +71,11 @@ public enum Metrics {
     }
 
     static int numberOfAppearances() {
-        return Metrics.values().length - numberOfEmotions() - numberOfExpressions() - numberOfMeasurements();
+        return BRIGHTNESS.ordinal() - numberOfEmotions() - numberOfExpressions() - numberOfMeasurements();
+    }
+
+    static int numberOfQualities() {
+        return Metrics.values().length - numberOfEmotions() - numberOfExpressions() - numberOfMeasurements() - numberOfAppearances();
     }
 
     /**
@@ -111,5 +118,16 @@ public enum Metrics {
         System.arraycopy(allMetrics, numberOfEmotions() + numberOfExpressions() + numberOfMeasurements(),
                 appearances, 0, numberOfAppearances());
         return appearances;
+    }
+
+    /*
+ * Returns an array to allow for iteration through all Qualities
+ */
+    static Metrics[] getQualities() {
+        Metrics[] qualities = new Metrics[numberOfQualities()];
+        Metrics[] allMetrics = Metrics.values();
+        System.arraycopy(allMetrics, numberOfEmotions() + numberOfExpressions() + numberOfMeasurements() + numberOfAppearances(),
+                qualities, 0, numberOfQualities());
+        return qualities;
     }
 }
