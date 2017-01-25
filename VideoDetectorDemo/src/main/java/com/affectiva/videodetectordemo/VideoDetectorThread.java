@@ -159,7 +159,6 @@ public class VideoDetectorThread extends Thread implements Detector.ImageListene
                         frameWidth = frameHeight;
                         frameHeight = temp;
                     }
-                    Frame.revertPointRotation(facePoints, frameWidth, frameHeight, frame.getTargetRotation());
                     drawingView.drawFrame(frame, facePoints);
                 } else {
                     for (Metrics metric : Metrics.values()) {
