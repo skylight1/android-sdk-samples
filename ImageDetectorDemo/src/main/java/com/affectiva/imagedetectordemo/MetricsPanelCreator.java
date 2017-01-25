@@ -50,6 +50,14 @@ public class MetricsPanelCreator {
             container.addView(createScoreTextView(eachCode,scores,context));
         }
 
+        //Populate Qualities
+        container.addView(createHeaderTextView("QUALITIES",context));
+        int[] qualityCodes = MetricsManager.getQualitiesIndexArray();
+        for (int eachCode: qualityCodes) {
+            container.addView(createNameTextView(eachCode,context));
+            container.addView(createScoreTextView(eachCode,scores,context));
+        }
+
         return container;
 
     }

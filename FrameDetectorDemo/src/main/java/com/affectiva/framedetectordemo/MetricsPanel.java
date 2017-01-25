@@ -58,9 +58,13 @@ public class MetricsPanel extends Fragment {
         container.addView(createHeaderTextView("MEASUREMENTS", context));
         addSetOfMetrics(context,container,Metrics.getMeasurements());
 
-        //Populate Measurements
+        //Populate Appearances
         container.addView(createHeaderTextView("APPEARANCES", context));
         addSetOfMetrics(context,container,Metrics.getAppearances());
+
+        //Populate Qualities
+        container.addView(createHeaderTextView("QUALITIES", context));
+        addSetOfMetrics(context,container,Metrics.getQualities());
     }
 
     void addSetOfMetrics(Context context, LinearLayout container, Metrics[] metrics) {

@@ -1,44 +1,25 @@
 apply plugin: 'com.android.application'
 
 android {
+    defaultConfig {
+        applicationId "com.affectiva.serviceframedetectordemo"
+        versionName "3.2.0-01"
+    }
+}
+
+apply from: "../module-defaults.gradle"
+
+// override some module defaults
+android {
     compileSdkVersion 23
     buildToolsVersion "23.0.3"
 
     defaultConfig {
-        applicationId "com.affectiva.android.affdex.sdk.samples.serviceframedetector"
-        minSdkVersion 16
         targetSdkVersion 23
-        versionCode 1
-        versionName "3.1.3-01"
-        setProperty("archivesBaseName", "$project.name-$versionName-$versionCode")
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
     }
 }
-
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:support-v4:23.4.0'
-    compile('com.affectiva.android:affdexsdk:3.1.3-SNAPSHOT')
 }
 
-// build a signed release apk only if the environment is configured
-// with the properties that let us access the keystore.  you can put
-// them into ~/.gradle/gradle.properties
-if (project.hasProperty('releaseKeystoreFile')) {
-    android.signingConfigs {
-        release {
-            storeFile file(releaseKeystoreFile)
-            storePassword releaseKeystorePassword
-            keyAlias releaseKeyAlias
-            keyPassword releaseKeyPassword
-        }
-    }
-    android.buildTypes.release.signingConfig = android.signingConfigs.release
-}

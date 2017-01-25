@@ -48,17 +48,24 @@ public class MetricsManager {
     static final int ROLL = PITCH + 1;
     static final int INTER_OCULAR_DISTANCE = ROLL + 1;
 
-    private static final int APPEARANCES_BASE = INTER_OCULAR_DISTANCE + 1;
-    private static final int NUM_MEASUREMENTS = APPEARANCES_BASE - MEASUREMENTS_BASE;
+    private static final int QUALITIES_BASE = INTER_OCULAR_DISTANCE + 1;
+    private static final int NUM_MEASUREMENTS = QUALITIES_BASE - MEASUREMENTS_BASE;
+
+    // Qualities
+    static final int BRIGHTNESS = QUALITIES_BASE;
+
+    private static final int APPEARANCES_BASE = BRIGHTNESS + 1;
+    private static final int NUM_QUALITIES = APPEARANCES_BASE - QUALITIES_BASE;
 
     // Appearances
     static final int GENDER = APPEARANCES_BASE;
     static final int AGE = GENDER + 1;
     static final int ETHNICITY = AGE + 1;
 
-    private static final int NUM_APPEARANCES = ETHNICITY - APPEARANCES_BASE + 1;
+    private static final int NUM_APPEARANCES = ETHNICITY - APPEARANCES_BASE  + 1;
 
-    private static final int NUM_ALL_METRICS = NUM_EMOTIONS + NUM_EXPRESSIONS + NUM_MEASUREMENTS + NUM_APPEARANCES;
+    private static final int NUM_ALL_METRICS = NUM_EMOTIONS + NUM_EXPRESSIONS
+            + NUM_MEASUREMENTS + NUM_APPEARANCES + NUM_QUALITIES;
 
     private static String[] lowerCaseNames;
     private static String[] upperCaseNames;
@@ -105,6 +112,7 @@ public class MetricsManager {
         lowerCaseNames[PITCH] = "pitch";
         lowerCaseNames[ROLL] = "roll";
         lowerCaseNames[INTER_OCULAR_DISTANCE] = "inter_ocular_distance";
+        lowerCaseNames[BRIGHTNESS] = "brightness";
 
         lowerCaseNames[GENDER] = "gender";
         lowerCaseNames[AGE] = "age";
@@ -133,24 +141,8 @@ public class MetricsManager {
         }
     }
 
-    static int getTotalNumEmotions() {
-        return NUM_EMOTIONS;
-    }
-
-    static int getTotalNumExpressions() {
-        return NUM_EXPRESSIONS;
-    }
-
-    static int getTotalNumMeasurements() {
-        return NUM_MEASUREMENTS;
-    }
-
-    static int getTotalNumAppearence() {
-        return NUM_APPEARANCES;
-    }
-
     static int getTotalNumNumericMetrics() {
-        return NUM_EMOTIONS + NUM_EXPRESSIONS + NUM_MEASUREMENTS;
+        return NUM_EMOTIONS + NUM_EXPRESSIONS + NUM_MEASUREMENTS + NUM_QUALITIES;
     }
 
 
@@ -186,6 +178,14 @@ public class MetricsManager {
         int[] toReturn = new int[NUM_APPEARANCES];
         for (int n = 0; n < toReturn.length; n++) {
             toReturn[n] = n + APPEARANCES_BASE;
+        }
+        return toReturn;
+    }
+
+    static int[] getQualitiesIndexArray() {
+        int[] toReturn = new int[NUM_QUALITIES];
+        for (int n = 0; n < toReturn.length; n++) {
+            toReturn[n] = n + QUALITIES_BASE;
         }
         return toReturn;
     }

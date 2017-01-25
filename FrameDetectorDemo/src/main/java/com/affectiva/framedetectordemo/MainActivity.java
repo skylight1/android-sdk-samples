@@ -46,6 +46,7 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
     long numberSDKFramesReceived = 0;
     long lastSDKFPSResetTime = -1L;
 
+    int startTime = 0;
     //floats to ensure the timestamps we send to FrameDetector are sequentially increasing
     float lastTimestamp = -1f;
     final float epsilon = .01f;
@@ -178,6 +179,9 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
             metricsPanel.setMetricFloatValue(metric,getScore(metric,face));
         }
         for (Metrics metric : Metrics.getMeasurements()) {
+            metricsPanel.setMetricFloatValue(metric,getScore(metric,face));
+        }
+        for (Metrics metric : Metrics.getQualities()) {
             metricsPanel.setMetricFloatValue(metric,getScore(metric,face));
         }
 
@@ -365,6 +369,9 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
             case INTER_OCULAR_DISTANCE:
                 score = face.measurements.getInterocularDistance();
                 break;
+            case BRIGHTNESS:
+                score = face.qualities.getBrightness();
+                break;
             default:
                 score = Float.NaN;
                 break;
@@ -384,8 +391,6 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
         } else {
             timestamp = (currentTime - firstFrameTime) / 1000f;
         }
-
-        Log.d(LOG_TAG, "timestamp=" + timestamp);
 
         if (timestamp > (lastTimestamp + epsilon)) {
             lastTimestamp = timestamp;
