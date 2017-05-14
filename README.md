@@ -1,3 +1,9 @@
+# TechCrunch Disrupt Hackathon NYC 2017 - SoLoMoRo
+
+## Uses Affectiva FrameDetectorDemo to read emotional state of patient and sends SMS message to healthcare provider via Nexmo 
+
+
+
 # Affdex Android Sample Apps
 
 These sample projects are Android Studio projects.  To use them, you need to:
