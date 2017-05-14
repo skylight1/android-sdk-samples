@@ -1,6 +1,7 @@
 package com.affectiva.framedetectordemo;
 
 import android.app.Activity;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -37,8 +38,8 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
     //state booleans
     boolean isCameraStarted  = false;
     boolean isCameraFront = true;
-    boolean isCameraRequestedByUser = false;
-    boolean isSDKRunning = false;
+    boolean isCameraRequestedByUser = true;
+    boolean isSDKRunning = true;
 
     //variables used to determine the FPS rates of frames sent by the camera and processed by the SDK
     long numberCameraFramesReceived = 0;
@@ -51,9 +52,11 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
     float lastTimestamp = -1f;
     final float epsilon = .01f;
     long firstFrameTime = -1;
+    boolean isPlayingMusic = false;
 
     CameraView cameraView; // controls the camera
     AsyncFrameDetector asyncDetector; // runs FrameDetector on a background thread
+    MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +126,9 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
             }
         });
         sdkButton.setText("Start SDK");
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.daisy);
+
     }
 
     void resetFPS() {
@@ -427,6 +433,13 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
         } else {
             Face face = faces.get(0);
             setMetricTextViewText(face);
+            if (face.emotions.getSadness()>0.85d) {
+                // do something morrison!!!
+                if(isPlayingMusic == false) {
+                    isPlayingMusic = true;
+                    mediaPlayer.start();
+                }
+            }
         }
 
         numberSDKFramesReceived += 1;
