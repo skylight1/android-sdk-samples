@@ -2,6 +2,7 @@ package com.affectiva.framedetectordemo;
 
 import android.app.Activity;
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -14,7 +15,12 @@ import android.widget.ToggleButton;
 import com.affectiva.android.affdex.sdk.Frame;
 import com.affectiva.android.affdex.sdk.detector.Face;
 
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This is a sample app using the FrameDetector object, which is not multi-threaded, and running it on a background thread in a custom object called
@@ -53,6 +59,7 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
     final float epsilon = .01f;
     long firstFrameTime = -1;
     boolean isPlayingMusic = false;
+    boolean hasSentText = false;
 
     CameraView cameraView; // controls the camera
     AsyncFrameDetector asyncDetector; // runs FrameDetector on a background thread
@@ -438,6 +445,7 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
                 if(isPlayingMusic == false) {
                     isPlayingMusic = true;
                     mediaPlayer.start();
+                    new HttpRequestTask().execute();
                 }
             }
         }
@@ -456,5 +464,29 @@ public class MainActivity extends Activity implements CameraView.OnCameraViewEve
         Frame.ByteArrayFrame frame = new Frame.ByteArrayFrame(frameData, width, height, Frame.COLOR_FORMAT.YUV_NV21);
         frame.setTargetRotation(rotation);
         return frame;
+    }
+
+    private class HttpRequestTask extends AsyncTask<Void, Void, Object> {
+        @Override
+        protected Object doInBackground(Void... params) {
+            try {
+                final String url = "https://rest.nexmo.com/sms/json";
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                Map<String, String> request = new HashMap<>();
+                request.put("api_key", "XXX_REPLACE_ME_XXX");
+                request.put("api_secret", "XXX_REPLACE_ME_XXX");
+                request.put("to", "XXX_REPLACE_ME_XXX");
+                request.put("from", "XXX_REPLACE_ME_XXX");
+                request.put("text", "The patient is SAD!");
+                Map result = restTemplate.postForObject(url, request, Map.class);
+                Log.i("CATHY", result.toString());
+                return null;
+            } catch (Exception e) {
+                Log.e("MainActivity", e.getMessage(), e);
+            }
+
+            return null;
+        }
     }
 }
